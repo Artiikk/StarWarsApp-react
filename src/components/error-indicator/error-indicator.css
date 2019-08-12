@@ -1,0 +1,13 @@
+.error-indicator {
+  color: #FFAF33;
+  text-align: center;
+  font-size: 18px;
+}
+
+.error-indicator span {
+  display: block;
+}
+
+.error-indicator img {
+  padding-bottom: 15px;
+}
