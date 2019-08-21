@@ -4,16 +4,18 @@ import Header from "../header";
 import RandomPlanet from "../random-planet";
 import SwapiService from "../../services/swapi-service";
 import ErrorBoundry from "../error-boundry";
+import { StarshipDetails } from "../sw-components";
+import { PeoplePage, PlanetPage, StarshipPage } from "../pages";
 
-import ItemList from "../item-list";
-import PersonDetails from "../person-details";
-import PeoplePage from "../people-page";
+import { SwapiServiceProvider } from "../swapi-service-context";
 
 import "./app.css";
 
+import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-dom";
+
 export default class App extends Component {
   state = {
-    selectedPerson: 4
+    selectedPerson: 5
   };
 
   swapiService = new SwapiService();
@@ -21,40 +23,30 @@ export default class App extends Component {
   render() {
     return (
       <ErrorBoundry>
-        <div className="stardb-app">
-          <Header />
-          <RandomPlanet />
+        <SwapiServiceProvider value={this.swapiService}>
+          <Router>
+            <div className="stardb-app">
+              <Header />
+              <RandomPlanet />
 
-          <PeoplePage />
+              <Switch>
+                <Route path="/" render={() => <h2>Welcome to starDB</h2>} exact />
+                <Route path="/people/:id?" component={PeoplePage} />
+                <Route path="/planets" component={PlanetPage} />
+                <Route path="/starships" exact component={StarshipPage} />
+                <Route
+                  path="/starships/:id"
+                  render={({ match }) => {
+                    const { id } = match.params;
+                    return <StarshipDetails itemId={id} />;
+                  }} />
 
-          <div className="row mb2">
-            <div className="col-md-6">
-              <ItemList
-                onItemSelected={this.onPersonSelected}
-                getData={this.swapiService.getAllPlanets}
-                renderItem={item => (
-                  <span>
-                    {item.name} <button>!</button>
-                  </span>
-                )}/>
-            </div>
-            <div className="col-md-6">
-              <PersonDetails personId={this.state.selectedPerson} />
-            </div>
-          </div>
+                <Redirect to="/"/>
+              </Switch>
 
-          <div className="row mb2">
-            <div className="col-md-6">
-              <ItemList
-                onItemSelected={this.onPersonSelected}
-                getData={this.swapiService.getAllStarships}
-                renderItem={item => item.name} />
             </div>
-            <div className="col-md-6">
-              <PersonDetails personId={this.state.selectedPerson} />
-            </div>
-          </div>
-        </div>
+          </Router>
+        </SwapiServiceProvider>
       </ErrorBoundry>
     );
   }

@@ -1,91 +1,78 @@
 import React, { Component } from "react";
 
-import SwapiService from "../../services/swapi-service";
-import ErrorButton from '../error-button';
 import Spinner from "../spinner";
 
 import "./item-details.css";
 
-export default class PersonDetails extends Component {
+const Record = ({ item, field, label }) => {
+  return(
+    <li className="list-group-item">
+      <span className="term">{ label }</span>
+      <span>{ item[field] }</span>
+    </li>
+  );
+};
+export { Record };
 
-  swapiService = new SwapiService();
+export default class ItemDetails extends Component {
 
   state = {
-    person: {},
-    loading: true
+    item: {},
+    loading: true,
+    image: null
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.personId !== prevProps.personId) {
+    if (this.props.itemId !== prevProps.itemId) {
       this.setState({ loading: true });
-      this.updatePerson();
+      this.updateItem();
     }
   }
 
   componentDidMount() {
-    this.updatePerson();
+    this.updateItem();
   }
 
-  updatePerson() {
-    const { personId } = this.props;
-    if (!personId) return;
+  updateItem() {
+    const { itemId, getData, getImageUrl } = this.props;
+    if (!itemId) return;
 
-    this.swapiService
-    .getPerson(personId)
-    .then((person) => {
+    getData(itemId)
+    .then((item) => {
       this.setState({
-        person: person,
+        item: item,
+        image: getImageUrl(item),
         loading: false
       });
     });
   }
 
-
   render() {
-    const { person, loading } = this.state;
+    const { item, loading, image } = this.state;
+    const { name } = item;
 
-    const content = loading ? <Spinner /> : <PersonView person={person}/>;
-    return (
-      <React.Fragment>
-        {content}
-      </React.Fragment>
+    const mapper = (
+      React.Children.map(this.props.children, (child) => {
+        return React.cloneElement(child, { item });
+      })
     );
-  }
-}
 
-const PersonView = ({ person }) => {
-  const { id, name, gender, birthYear, eyeColor, mass } = person;
-  return (
-    <React.Fragment>
-      <div className="person-details card">
+    const content = loading ? <Spinner /> : mapper;
+
+    return (
+      <div className="item-details card">
         <img
-          className="person-image"
-          src={`https://starwars-visualguide.com/assets/img/characters/${id}.jpg`}
-          alt="Star wars character" />
+          className="item-image"
+          src={image}
+          alt="" />
 
         <div className="card-body">
           <h4>{name}</h4>
           <ul className="list-group list-group-flush">
-            <li className="list-group-item">
-              <span className="term">Gender:</span>
-              <span>{gender}</span>
-            </li>
-            <li className="list-group-item">
-              <span className="term">Birth Year:</span>
-              <span>{birthYear}</span>
-            </li>
-            <li className="list-group-item">
-              <span className="term">Eye Color:</span>
-              <span>{eyeColor}</span>
-            </li>
-            <li className="list-group-item">
-              <span className="term">Mass:</span>
-              <span>{mass}</span>
-            </li>
+            {content}
           </ul>
-           <ErrorButton />
         </div>
       </div>
-    </React.Fragment>
-  );
+    );
+  }
 }
